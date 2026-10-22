@@ -5,7 +5,7 @@
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "https://github.com/local/dsh-sidebar-fold"
+    "url": "https://github.com/yakira-neko/dsh-sidebar-fold"
   },
   "main": "lib/index.js",
   "exports": {
