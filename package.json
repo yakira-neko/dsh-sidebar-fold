@@ -1,11 +1,11 @@
 {
-  "name": "dsh-sidebar-manager",
+  "name": "dsh-sidebar-fold",
   "version": "0.1.0",
-  "description": "Manage the DSH left sidebar: fold the plugin-added global panel entries into a collapsible group, pin entries, or hide them — with a settings page and a one-click in-list toggle.",
+  "description": "Fold the plugin-added entries of the DSH left sidebar into one collapsible group — per-entry show/fold/hide, bulk fold, a live settings page and a one-click in-list toggle.",
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "https://github.com/local/dsh-sidebar-manager"
+    "url": "https://github.com/local/dsh-sidebar-fold"
   },
   "main": "lib/index.js",
   "exports": {

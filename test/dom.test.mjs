@@ -1,5 +1,5 @@
 /**
- * Headless contract tests for dsh-sidebar-manager.
+ * Headless contract tests for dsh-sidebar-fold.
  *
  * The plugin's risky surface is DOM bookkeeping against a shell it does not
  * own, so these tests run the real `lib/client.js` against a minimal DOM shim
@@ -332,17 +332,17 @@ test('augmenter tags rows by entry id and hides folded ones', () => {
   augmenter.start()
   flushFrames()
 
-  assert.equal(nav.getAttribute('data-dsh-sm-nav'), '1')
-  assert.deepEqual(rows.map((row) => row.getAttribute('data-dsh-sm-row')), ['plugins', 'schedules', 'ssh', 'board'])
-  assert.equal(rows[0].getAttribute('data-dsh-sm-hidden'), null)
-  assert.equal(rows[1].getAttribute('data-dsh-sm-hidden'), null)
-  assert.equal(rows[2].getAttribute('data-dsh-sm-hidden'), '1')
-  assert.equal(rows[3].getAttribute('data-dsh-sm-hidden'), '1')
+  assert.equal(nav.getAttribute('data-dsh-sf-nav'), '1')
+  assert.deepEqual(rows.map((row) => row.getAttribute('data-dsh-sf-row')), ['plugins', 'schedules', 'ssh', 'board'])
+  assert.equal(rows[0].getAttribute('data-dsh-sf-hidden'), null)
+  assert.equal(rows[1].getAttribute('data-dsh-sf-hidden'), null)
+  assert.equal(rows[2].getAttribute('data-dsh-sf-hidden'), '1')
+  assert.equal(rows[3].getAttribute('data-dsh-sf-hidden'), '1')
 
-  const host = nav.querySelector('[data-dsh-sm-host]')
+  const host = nav.querySelector('[data-dsh-sf-host]')
   assert.ok(host, 'fold toggle host must be appended to the panel nav')
-  assert.equal(host.getAttribute('data-dsh-sm-rail'), '0')
-  assert.equal(lastToggleRender.element.props.className, 'dsm-toggle')
+  assert.equal(host.getAttribute('data-dsh-sf-rail'), '0')
+  assert.equal(lastToggleRender.element.props.className, 'dsf-toggle')
 
   augmenter.dispose()
   nav.remove()
@@ -381,11 +381,11 @@ test('settings lists every live panel, not a fixed set, and bulk-folds them', ()
 
   // The list is derived from the live slot entries: adding an entry to the
   // store adds a row, so any future plugin panel is selectable.
-  assert.equal(collect(tree, 'dsm-item').length, extra.length)
+  assert.equal(collect(tree, 'dsf-item').length, extra.length)
   panelsStore.set([...extra, { id: 'codex', order: 91, label: 'Codex' }])
-  assert.equal(collect(client.SettingsSection({ configStore, panelsStore, t }), 'dsm-item').length, extra.length + 1)
+  assert.equal(collect(client.SettingsSection({ configStore, panelsStore, t }), 'dsf-item').length, extra.length + 1)
 
-  const [foldAll, showAll] = collect(tree, 'dsm-bulk-btn')
+  const [foldAll, showAll] = collect(tree, 'dsf-bulk-btn')
   foldAll.props.onClick()
   for (const entry of extra) assert.equal(configStore.getSnapshot().modes[entry.id], 'fold')
   showAll.props.onClick()
@@ -401,17 +401,17 @@ test('unfolding, disabling and per-entry overrides re-hide correctly', () => {
 
   configStore.update((config) => ({ ...config, collapsed: false }))
   flushFrames()
-  assert.deepEqual(rows.map((row) => row.getAttribute('data-dsh-sm-hidden')), [null, null, null, null])
+  assert.deepEqual(rows.map((row) => row.getAttribute('data-dsh-sf-hidden')), [null, null, null, null])
 
   configStore.update((config) => ({ ...config, collapsed: true, modes: { ssh: 'show' } }))
   flushFrames()
-  assert.equal(rows[2].getAttribute('data-dsh-sm-hidden'), null)
-  assert.equal(rows[3].getAttribute('data-dsh-sm-hidden'), '1')
+  assert.equal(rows[2].getAttribute('data-dsh-sf-hidden'), null)
+  assert.equal(rows[3].getAttribute('data-dsh-sf-hidden'), '1')
 
   configStore.update((config) => ({ ...config, enabled: false }))
   flushFrames()
-  assert.deepEqual(rows.map((row) => row.getAttribute('data-dsh-sm-hidden')), [null, null, null, null])
-  assert.equal(nav.querySelector('[data-dsh-sm-host]'), null, 'toggle disappears when folding is off')
+  assert.deepEqual(rows.map((row) => row.getAttribute('data-dsh-sf-hidden')), [null, null, null, null])
+  assert.equal(nav.querySelector('[data-dsh-sf-host]'), null, 'toggle disappears when folding is off')
 
   augmenter.dispose()
   nav.remove()
@@ -424,8 +424,8 @@ test('rail mode (single-child rows) is detected and the toggle host stays last',
   augmenter.start()
   flushFrames()
 
-  const host = nav.querySelector('[data-dsh-sm-host]')
-  assert.equal(host.getAttribute('data-dsh-sm-rail'), '1')
+  const host = nav.querySelector('[data-dsh-sf-host]')
+  assert.equal(host.getAttribute('data-dsh-sf-rail'), '1')
   assert.equal(nav.children[nav.children.length - 1], host)
 
   augmenter.dispose()
@@ -439,8 +439,8 @@ test('legacy shells without a panellist slot key still resolve the nav', () => {
   augmenter.start()
   flushFrames()
 
-  assert.equal(nav.getAttribute('data-dsh-sm-nav'), '1')
-  assert.equal(nav.querySelector('[data-dsh-sm-host]') !== null, true)
+  assert.equal(nav.getAttribute('data-dsh-sf-nav'), '1')
+  assert.equal(nav.querySelector('[data-dsh-sf-host]') !== null, true)
 
   augmenter.dispose()
   nav.remove()
@@ -452,7 +452,7 @@ test('a sidebar remount re-tags the fresh nav', () => {
   const augmenter = client.createAugmenter({ configStore, panelsStore, t: () => (k) => k })
   augmenter.start()
   flushFrames()
-  assert.equal(first.nav.getAttribute('data-dsh-sm-nav'), '1')
+  assert.equal(first.nav.getAttribute('data-dsh-sf-nav'), '1')
 
   const second = makeSidebar([2, 2, 2, 2])
   first.scope.remove()
@@ -460,8 +460,8 @@ test('a sidebar remount re-tags the fresh nav', () => {
   timers.filter((timer) => !timer.cleared).forEach((timer) => timer.fn())
   flushFrames()
 
-  assert.equal(second.nav.getAttribute('data-dsh-sm-nav'), '1')
-  assert.equal(second.rows[2].getAttribute('data-dsh-sm-hidden'), '1')
+  assert.equal(second.nav.getAttribute('data-dsh-sf-nav'), '1')
+  assert.equal(second.rows[2].getAttribute('data-dsh-sf-hidden'), '1')
 
   augmenter.dispose()
   second.scope.remove()
@@ -476,9 +476,9 @@ test('rows without a matching entry are cleaned up', () => {
 
   panelsStore.set(ENTRIES.slice(0, 2))
   flushFrames()
-  assert.equal(rows[2].getAttribute('data-dsh-sm-row'), null)
-  assert.equal(rows[2].getAttribute('data-dsh-sm-hidden'), null)
-  assert.equal(nav.querySelector('[data-dsh-sm-host]'), null)
+  assert.equal(rows[2].getAttribute('data-dsh-sf-row'), null)
+  assert.equal(rows[2].getAttribute('data-dsh-sf-hidden'), null)
+  assert.equal(nav.querySelector('[data-dsh-sf-host]'), null)
 
   augmenter.dispose()
   nav.remove()
@@ -526,8 +526,8 @@ test('apply() mounts styles, seats and the DOM augmenter', () => {
   const slots = registered.map((item) => item.slot)
   assert.ok(slots.includes('settings.section'), 'settings page must be registered')
   assert.ok(slots.includes('sidebar.footer.action'), 'foot fold control must be registered')
-  assert.ok(document.getElementById('dsh-sidebar-manager/styles'), 'CSS must be injected')
-  assert.equal(rows[2].getAttribute('data-dsh-sm-hidden'), '1')
+  assert.ok(document.getElementById('dsh-sidebar-fold/styles'), 'CSS must be injected')
+  assert.equal(rows[2].getAttribute('data-dsh-sf-hidden'), '1')
 
   nav.remove()
 })
@@ -539,8 +539,8 @@ test('every row can be forced visible, leaving only a bare list', () => {
   augmenter.start()
   flushFrames()
 
-  assert.deepEqual(rows.map((row) => row.getAttribute('data-dsh-sm-hidden')), [null, null, null, null])
-  assert.equal(nav.querySelector('[data-dsh-sm-host]'), null)
+  assert.deepEqual(rows.map((row) => row.getAttribute('data-dsh-sf-hidden')), [null, null, null, null])
+  assert.equal(nav.querySelector('[data-dsh-sf-host]'), null)
 
   augmenter.dispose()
   nav.remove()

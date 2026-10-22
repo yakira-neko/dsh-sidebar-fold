@@ -1,4 +1,4 @@
-# dsh-sidebar-manager
+# dsh-sidebar-fold
 
 把左侧栏里「插件们各自加进来的全局面板」收进一个可折叠的分组，避免入口越装越多时列表失控。
 
@@ -19,11 +19,11 @@ error: profile "desktop" is managed exclusively by the Electron application
 
 ```powershell
 # 1) 把包放进 profile 的 node_modules（junction 也行，改代码免重装）
-$link = Join-Path $HOME '.dsh\profiles\desktop\node_modules\dsh-sidebar-manager'
-New-Item -ItemType Junction -Path $link -Target 'D:\code\dsh-plugin\dsh-sidebar-manager'
+$link = Join-Path $HOME '.dsh\profiles\desktop\node_modules\dsh-sidebar-fold'
+New-Item -ItemType Junction -Path $link -Target 'D:\code\dsh-plugin\dsh-sidebar-fold'
 
 # 2) profile/package.json 里加依赖
-#    "dsh-sidebar-manager": "link:D:/code/dsh-plugin/dsh-sidebar-manager"
+#    "dsh-sidebar-fold": "link:D:/code/dsh-plugin/dsh-sidebar-fold"
 
 # 3) 同一个文件里把包名追加进 dsh.profile.bundles（本包声明了 dsh.bundle.patch，
 #    是一层独立 patch；bundles 里没有它，host 半不会成为 Loader 行，client 也不会被下发）
@@ -32,12 +32,12 @@ New-Item -ItemType Junction -Path $link -Target 'D:\code\dsh-plugin\dsh-sidebar-
 命令行环境（`dsh web`、自建 profile）可以直接用官方路径，它会自动把包名补进 `dsh.profile.bundles`：
 
 ```bash
-dsh plugin --profile <name> add link:D:/code/dsh-plugin/dsh-sidebar-manager
+dsh plugin --profile <name> add link:D:/code/dsh-plugin/dsh-sidebar-fold
 ```
 
 改完配置要**完全退出并重开** DeepSeek Harness Desktop（客户端 bundle 在启动时随 `__DSH_BOOT__` 图一起下发）。
 
-卸载：从 `dsh.profile.bundles` 删掉 `dsh-sidebar-manager`，删掉 `node_modules/dsh-sidebar-manager`，再删 `package.json` 里那行依赖。本机状态（哪些入口被折叠）存在浏览器 `localStorage` 的 `dsh-sidebar-manager/v1`，卸载后可手动清掉。
+卸载：从 `dsh.profile.bundles` 删掉 `dsh-sidebar-fold`，删掉 `node_modules/dsh-sidebar-fold`，再删 `package.json` 里那行依赖。本机状态（哪些入口被折叠）存在浏览器 `localStorage` 的 `dsh-sidebar-fold/v1`，卸载后可手动清掉。
 
 ## 用法
 
@@ -49,7 +49,7 @@ dsh plugin --profile <name> add link:D:/code/dsh-plugin/dsh-sidebar-manager
 
 ## 配置结构
 
-`localStorage["dsh-sidebar-manager/v1"]`：
+`localStorage["dsh-sidebar-fold/v1"]`：
 
 ```json
 {
@@ -68,9 +68,9 @@ dsh plugin --profile <name> add link:D:/code/dsh-plugin/dsh-sidebar-manager
 左侧栏的行由 `@deepseek-ai/dsh-client-ui-sidebar` 渲染，slot 只提供「一项」的注册位（没有分组位），所以本插件在 shell 渲染完之后做归属标注：
 
 1. 从 `ctx.slots.entriesOfSlot('sidebar.panellist')` 取当前条目，按 `order` 升序——这正是 shell 渲染行的顺序。
-2. 找到面板列表 `nav`（`[data-slot="sidebar.panellist"]` 内的第一个带 `button` 子元素的 `nav`；老 shell 只有 `[data-slot="sidebar"]`，两种都认），把它的直接 `button` 子节点与条目配对：先看行的 `aria-label`（shell 用面板标题写的），对不上再按位置兜底，逐行写 `data-dsh-sm-row="<id>"`。
-3. 需要隐藏的行写 `data-dsh-sm-hidden="1"`，配套只有一条规则：`[data-dsh-sm-hidden="1"] { display: none !important }`。
-4. 折叠开关是自己插入 `nav` 的一个 `div[data-dsh-sm-host]`（`display: contents`，`order: 10000` 视觉置底），里层用 `react-dom/client` 渲染成和原生行同构的按钮；侧边栏收成 56px 图标栏时自动切成 36×36 图标。
+2. 找到面板列表 `nav`（`[data-slot="sidebar.panellist"]` 内的第一个带 `button` 子元素的 `nav`；老 shell 只有 `[data-slot="sidebar"]`，两种都认），把它的直接 `button` 子节点与条目配对：先看行的 `aria-label`（shell 用面板标题写的），对不上再按位置兜底，逐行写 `data-dsh-sf-row="<id>"`。
+3. 需要隐藏的行写 `data-dsh-sf-hidden="1"`，配套只有一条规则：`[data-dsh-sf-hidden="1"] { display: none !important }`。
+4. 折叠开关是自己插入 `nav` 的一个 `div[data-dsh-sf-host]`（`display: contents`，`order: 10000` 视觉置底），里层用 `react-dom/client` 渲染成和原生行同构的按钮；侧边栏收成 56px 图标栏时自动切成 36×36 图标。
 5. `MutationObserver` 只盯侧边栏子树 + 500ms 轮询兜底（侧边栏晚于插件挂载、或被整体重挂时能接回来），不观察整页。
 
 宿主侧（`lib/index.js`）没有行为，只为了让这个包成为 profile 里的一条正常 Loader 行，并被 client 扫描发现。
@@ -85,5 +85,5 @@ npm test    # node --test test/dom.test.mjs
 
 ## 兼容性
 
-- 针对 `@deepseek-ai/dsh-client-ui-sidebar` 0.2.1-rc.2 的行结构（`nav` 的直接 `button` 子节点 + 一个可选标题 `span`）。若上游把行包进额外容器，行标注会退化为「不生效」而不是报错——`[data-dsh-sm-row]` 找不到对应行时干净退出。
+- 针对 `@deepseek-ai/dsh-client-ui-sidebar` 0.2.1-rc.2 的行结构（`nav` 的直接 `button` 子节点 + 一个可选标题 `span`）。若上游把行包进额外容器，行标注会退化为「不生效」而不是报错——`[data-dsh-sf-row]` 找不到对应行时干净退出。
 - 依赖 `ctx.slots`（`entriesOfSlot` / `subscribe` / `inject` / `register`）、`ctx.locale`、`react`、`react-dom/client`，均在 `dsh.client.inject` 里声明。
