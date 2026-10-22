@@ -1,0 +1,13 @@
+# dsh-sidebar-manager bundle patch
+#
+# Installed with:
+#
+#   dsh plugin --profile desktop add link:D:/code/dsh-plugin/dsh-sidebar-manager
+#
+# The profile boot merges this patch (one `insert` of the plugin row) exactly
+# like a manual mount line. The row itself is a browser-only plugin: its Node
+# half (`lib/index.js`) provides no Host behavior, its client half
+# (`lib/client.js`) owns the sidebar fold behavior plus the Settings page.
+- insert:
+    - id: sidebar-manager
+      name: 'dsh-sidebar-manager'
